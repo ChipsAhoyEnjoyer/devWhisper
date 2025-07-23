@@ -1,10 +1,13 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/websocket"
+	"github.com/joho/godotenv"
 )
 
 const (
@@ -12,8 +15,7 @@ const (
 	writeSize = 1024
 	maxConns  = 100
 
-	port = "7777"
-
+	envFile                 = ".env"
 	successfulConnectionMsg = "New connection opened."
 )
 
@@ -23,6 +25,8 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  readSize,
 	WriteBufferSize: writeSize,
 }
+
+var errEnvironmentVarNotSet = errors.New("error environment variable not set")
 
 func newConnectionMap() *activeConnections {
 	new := make(activeConnections, maxConns)
@@ -58,7 +62,16 @@ func read(conn *websocket.Conn) {
 }
 
 func main() {
-	log.Println("devWhisper server ready!")
+	log.Println("devWhisper booting up...")
+
+	godotenv.Load(envFile)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatalf("%v: %s", errEnvironmentVarNotSet, "PORT")
+		return
+	}
+
 	conns := newConnectionMap()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/connect", conns.handleConnect)
