@@ -17,7 +17,8 @@ func main() {
 
 	config, err := server.NewServer()
 	if err != nil {
-		log.Fatal()
+		log.Fatalf("Failed to create a new server: %v", err)
+		return
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/connect", handlers.HandleConnect)

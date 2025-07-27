@@ -2,6 +2,10 @@ FROM debian:stable-slim
 
 RUN apt-get update && apt-get install -y ca-certificates
 
-COPY devWhisper /usr/bin/devWhisper
+WORKDIR /app
 
-CMD ["devWhisper"]
+COPY devWhisper /app/devWhisper
+
+COPY .env /app/.env
+
+CMD ["/app/devWhisper"]

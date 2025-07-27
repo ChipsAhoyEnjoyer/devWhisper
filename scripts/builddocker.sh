@@ -12,13 +12,13 @@ fi
 echo "Building Docker image with tags: $COMMIT_HASH and latest"
 
 # Build the Docker image with both tags
-docker build -t devWhisper:$COMMIT_HASH -t devWhisper:latest .
+docker build -t devwhisper:$COMMIT_HASH -t devwhisper:latest .
 
 # Check if the build was successful
 if [ $? -eq 0 ]; then
     echo "Docker image successfully built with tags:"
-    echo "  - devWhisper:$COMMIT_HASH"
-    echo "  - devWhisper:latest"
+    echo "  - devwhisper:$COMMIT_HASH"
+    echo "  - devwhisper:latest"
 else
     echo "Error: Docker build failed"
     exit 1

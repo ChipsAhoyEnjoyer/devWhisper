@@ -2,7 +2,6 @@ package server
 
 import (
 	"os"
-	"errors"
 
 	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
@@ -12,11 +11,11 @@ const (
 	maxConns = 100
 
 	envFile = ".env"
+
+	defaultPort = "7777"
 )
 
-var errEnvironmentVarNotSet = errors.New("error environment variable not set")
 type activeConnections map[string]*websocket.Conn
-
 
 type Config struct {
 	Port string
@@ -30,7 +29,7 @@ func NewServer() (*Config, error) {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		return nil, errEnvironmentVarNotSet
+		port = defaultPort
 	}
 
 	conns := make(activeConnections, maxConns)
