@@ -1,30 +1,50 @@
 name: devwhisper
 
 services:
-  devwhisper:
-    image: devwhisper:latest
-    container_name: devwhisper
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    environment:
-      - PORT=${PORT}
-    networks:
-      - devwhisper_network
+
   db:
     image: postgres:16
-    container_name: devwhisper_db
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_DB=${DB_NAME}
-    ports:
-      - "5432:5432"
+    expose:
+      - 5432
     volumes:
       - devwhisper_vol:/var/lib/postgresql/data
     networks:
       - devwhisper_network
+
+  migrate:
+    image: golang:1.24
+    depends_on:
+      - db
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - GOOSE_DRIVER=${GOOSE_DRIVER}
+      - GOOSE_DBSTRING=${GOOSE_DBSTRING}
+    entrypoint: >
+      sh -c "go install github.com/pressly/goose/v3/cmd/goose@latest && goose -dir /app/db/sql/schema up"
+    networks:
+      - devwhisper_network
+
+  devwhisper:
+    image: devwhisper:latest
+    container_name: devwhisper
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - PORT=${PORT}
+    networks:
+      - devwhisper_network
+    depends_on:
+      - migrate 
 
 networks:
   devwhisper_network:

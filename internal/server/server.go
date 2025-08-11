@@ -3,29 +3,24 @@ package server
 import (
 	"os"
 
+	"github.com/ChipsAhoyEnjoyer/devWhisper/internal/database"
 	"github.com/gorilla/websocket"
-	"github.com/joho/godotenv"
 )
 
 const (
-	maxConns = 100
-
-	envFile = ".env"
-
+	maxConns    = 100
 	defaultPort = "7777"
 )
 
 type activeConnections map[string]*websocket.Conn
 
 type Config struct {
-	Port string
+	Port  string
 	Users activeConnections
-
+	DB    *database.Queries
 }
 
-
-func NewServer() (*Config, error) {
-	godotenv.Load(envFile)
+func NewServer(db database.DBTX) (*Config, error) {
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -34,10 +29,12 @@ func NewServer() (*Config, error) {
 
 	conns := make(activeConnections, maxConns)
 
+	queries := database.New(db)
 	c := Config{
-		Port: port,
+		Port:  port,
 		Users: conns,
+		DB:    queries,
 	}
-	
+
 	return &c, nil
 }
