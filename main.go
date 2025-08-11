@@ -39,10 +39,11 @@ func main() {
 		return
 	}
 	mux := http.NewServeMux()
+	mux.HandleFunc("/", server.HandleHomepage)
 	mux.HandleFunc("/register", config.HandleRegister)
 	mux.HandleFunc("/deleteUser", config.HandleDeleteUser)
 	mux.HandleFunc("/connect", server.HandleConnect)
-	mux.HandleFunc("/", server.HandleHomepage)
+	mux.HandleFunc("/login", config.HandleLogin)
 
 	server := &http.Server{
 		Addr:    ":" + config.Port,
