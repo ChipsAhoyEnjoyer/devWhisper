@@ -6,29 +6,31 @@ import (
 	"net/http"
 )
 
-func RespondWithError(w http.ResponseWriter, code int, msg string) {
+func RespondWithError(w http.ResponseWriter, code int, err error, response payload) {
 	if code >= 500 {
-		log.Println(msg)
+		log.Println(response.Response)
+		log.Println(err)
+	}
+	dat, err := json.Marshal(response)
+	if err != nil {
+		msg := "Failed to encode error response"
+		log.Println(msg + ": " + err.Error())
+		http.Error(w, msg, http.StatusInternalServerError)
+		return
 	}
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
-	respBody := struct {
-		Err string `json:"error"`
-	}{Err: msg}
-	dat, err := json.Marshal(respBody)
-	if err != nil {
-		http.Error(w, "Failed to encode error response: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
 	w.Write(dat)
 }
 
-func RespondWithJSON(w http.ResponseWriter, code int, payload any) {
+func RespondWithJSON(w http.ResponseWriter, code int, response payload) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
-	dat, err := json.Marshal(payload) // payload should be a Go struct or any JSON-marshalable type
+	dat, err := json.Marshal(response)
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, "Failed to encode response: "+err.Error())
+		msg := "Failed to encode response"
+		log.Println(msg + ": " + err.Error())
+		http.Error(w, msg, http.StatusInternalServerError)
 		return
 	}
 	w.Write(dat)

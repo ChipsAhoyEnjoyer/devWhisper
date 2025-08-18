@@ -38,7 +38,7 @@ func getHashCost() int {
 	return cost
 }
 
-func HashPassword(password string) (hashedPW string, err error) {
+func hashPassword(password string) (hashedPW string, err error) {
 	b, err := bcrypt.GenerateFromPassword([]byte(password), hashCost)
 	return string(b), err
 }
@@ -119,4 +119,47 @@ func MakeRefreshToken() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(tk), nil
+}
+
+func validateUsername(username string) error {
+	nameLen := len(username)
+	if nameLen < 5 || nameLen > 15 {
+		return errors.New("invalid username length; name must be between between 5-15 characters")
+	}
+
+	for _, r := range username {
+		if !isAllowedRune(r) {
+			return errors.New("invalid character in username: " + string(r))
+		}
+	}
+
+	return nil
+}
+
+func validatePassword(password string) error {
+	passLen := len(password)
+	if passLen < 5 || passLen > 15 {
+		return errors.New("invalid password length; password must be between 5-15 characters")
+	}
+	for _, r := range password {
+		if !isAllowedRune(r) {
+			return errors.New("invalid character in password: " + string(r))
+		}
+	}
+	return nil
+
+}
+func isAllowedRune(r rune) bool {
+	switch {
+	case r >= 'a' && r <= 'z':
+		return true
+	case r >= 'A' && r <= 'Z':
+		return true
+	case r >= '0' && r <= '9':
+		return true
+	case r == '_' || r == ' ':
+		return true
+	default:
+		return false
+	}
 }
