@@ -7,6 +7,7 @@
 *.dll
 *.so
 *.dylib
+*.vim
 devWhisper
 
 # Test binary, built with `go test -c`
