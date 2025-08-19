@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +26,7 @@ type CreateRefreshTokenParams struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	ExpiresAt time.Time
-	RevokedAt time.Time
+	RevokedAt sql.NullTime
 	UserID    uuid.UUID
 }
 
@@ -76,7 +77,7 @@ WHERE token = $3
 `
 
 type RevokeRefreshTokenParams struct {
-	RevokedAt time.Time
+	RevokedAt sql.NullTime
 	UpdatedAt time.Time
 	Token     string
 }
