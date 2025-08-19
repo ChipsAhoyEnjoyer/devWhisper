@@ -1,14 +1,19 @@
 package server
 
 import (
+	"database/sql"
 	"encoding/json"
-	"log"
+	"errors"
+	"fmt"
 	"net/http"
+	"time"
+
+	"github.com/ChipsAhoyEnjoyer/devWhisper/internal/database"
 )
 
 func (cfg Config) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	log.Println("User is attempting to log in")
 	defer r.Body.Close()
+	// Authenticate user
 	params := struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -16,23 +21,58 @@ func (cfg Config) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&params)
 	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		msg := payload{Response: "error: unable to read user request; server error"}
+		RespondWithError(w, http.StatusInternalServerError, err, msg)
 		return
 	}
 	user, err := cfg.DB.GetUserByUsername(r.Context(), params.Username)
 	if err != nil {
-		http.Error(w, "User not found", http.StatusNotFound)
+		if errors.Is(err, sql.ErrNoRows) {
+			msg := payload{Response: "error: invalid credentials"}
+			RespondWithError(w, http.StatusUnauthorized, errors.New("Invalid credentials"), msg)
+			return
+		}
+		msg := payload{Response: "error: unable to find user at this moment; server error"}
+		RespondWithError(w, http.StatusInternalServerError, err, msg)
 		return
 	}
-	if user.HashedPassword != params.Password {
-		http.Error(w, "Invalid password", http.StatusUnauthorized)
+	err = CheckPasswordHash(user.HashedPassword, params.Password)
+	if err != nil {
+		msg := payload{Response: "error: invalid credentials"}
+		RespondWithError(w, http.StatusUnauthorized, errors.New("Invalid credentials"), msg)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	response := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Login successful",
+	// Access tokens
+	jwtTk, err := MakeJWT(user.ID, cfg.TokenSecret, jwtDuration)
+	if err != nil {
+		msg := payload{Response: "error: creating jwt; server error"}
+		RespondWithError(w, http.StatusInternalServerError, err, msg)
+		return
 	}
-	w.Write([]byte(response.Message))
+	refreshToken, err := MakeRefreshToken()
+	if err != nil {
+		msg := payload{Response: "error: creating refresh token; server error"}
+		RespondWithError(w, http.StatusInternalServerError, err, msg)
+		return
+	}
+	_, err = cfg.DB.CreateRefreshToken(
+		r.Context(),
+		database.CreateRefreshTokenParams{
+			Token:     refreshToken,
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			ExpiresAt: time.Now().UTC().Add(refreshTokenDuration),
+			RevokedAt: sql.NullTime{Valid: false},
+			UserID:    user.ID,
+		},
+	)
+	if err != nil {
+		msg := payload{Response: "error: server could not save your refresh token; server error"}
+		RespondWithError(w, http.StatusInternalServerError, err, msg)
+		return
+	}
+	w.Header().Add("Authorization", fmt.Sprintf("Bearer %s", jwtTk))
+	w.Header().Add("Refresh-Token", refreshToken)
+	msg := payload{Response: fmt.Sprintf("Logging in as %s", user.Username)}
+	RespondWithJSON(w, http.StatusOK, msg)
 }

@@ -23,14 +23,22 @@ const (
 type activeConnections map[string]*websocket.Conn
 
 type Config struct {
-	Port  string
-	Users activeConnections
-	Rdb   *redis.Client
-	DB    *database.Queries
+	TokenSecret string
+	Port        string
+	Users       activeConnections
+	Rdb         *redis.Client
+	DB          *database.Queries
 }
 
 func NewServer() (*Config, error) {
 	godotenv.Load(envFile)
+
+	tokenSecret := os.Getenv("TOKEN_SECRET")
+	if tokenSecret == "" {
+		log.Println("WARNING: TOKEN_SECRET environment variable not set, using 'secret' as token secret")
+		tokenSecret = "secret"
+
+	}
 	environment := os.Getenv("ENVIRONMENT")
 	db_url := os.Getenv("GOOSE_DBSTRING")
 	if environment == "test" {
@@ -47,7 +55,7 @@ func NewServer() (*Config, error) {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Println("WARNING: 'PORT' environment variable not set")
+		log.Println("WARNING: PORT environment variable not set")
 		port = defaultPort
 	}
 
@@ -65,10 +73,11 @@ func NewServer() (*Config, error) {
 
 	queries := database.New(db)
 	c := Config{
-		Port:  port,
-		Users: conns,
-		Rdb:   redis,
-		DB:    queries,
+		TokenSecret: tokenSecret,
+		Port:        port,
+		Users:       conns,
+		Rdb:         redis,
+		DB:          queries,
 	}
 
 	return &c, nil

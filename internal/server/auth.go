@@ -78,11 +78,11 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.Nil, err
 	}
-	issuer, err := tk.Claims.GetIssuer()
+	tokenIssuer, err := tk.Claims.GetIssuer()
 	if err != nil {
 		return uuid.Nil, err
 	}
-	if issuer != string(issuer) {
+	if tokenIssuer != string(issuer) {
 		return uuid.Nil, errors.New("invalid issuer")
 	}
 	idStr, err := tk.Claims.GetSubject()
@@ -102,14 +102,6 @@ func GetBearerToken(headers http.Header) (string, error) {
 		return "", errors.New("no bearer token found")
 	}
 	return strings.TrimPrefix(bearer, "Bearer "), nil
-}
-
-func GetAPIKey(headers http.Header) (string, error) {
-	key := headers.Get("Authorization")
-	if !strings.HasPrefix(key, "ApiKey ") {
-		return "", errors.New("no bearer token found")
-	}
-	return strings.TrimPrefix(key, "ApiKey "), nil
 }
 
 func MakeRefreshToken() (string, error) {

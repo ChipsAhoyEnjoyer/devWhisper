@@ -16,7 +16,7 @@ func main() {
 		return
 	}
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", server.HandleHomepage)
+	mux.HandleFunc("/", config.AuthMiddleware(http.HandlerFunc(server.HandleHomepage)))
 	mux.HandleFunc("/register", config.HandleRegister)
 	mux.HandleFunc("/deleteUser", config.HandleDeleteUser)
 	mux.HandleFunc("/connect", server.HandleConnect)
