@@ -113,6 +113,21 @@ func MakeRefreshToken() (string, error) {
 	return hex.EncodeToString(tk), nil
 }
 
+func isAllowedRune(r rune) bool {
+	switch {
+	case r >= 'a' && r <= 'z':
+		return true
+	case r >= 'A' && r <= 'Z':
+		return true
+	case r >= '0' && r <= '9':
+		return true
+	case r == '_' || r == ' ':
+		return true
+	default:
+		return false
+	}
+}
+
 func validateUsername(username string) error {
 	nameLen := len(username)
 	if nameLen < 5 || nameLen > 15 {
@@ -139,19 +154,4 @@ func validatePassword(password string) error {
 		}
 	}
 	return nil
-
-}
-func isAllowedRune(r rune) bool {
-	switch {
-	case r >= 'a' && r <= 'z':
-		return true
-	case r >= 'A' && r <= 'Z':
-		return true
-	case r >= '0' && r <= '9':
-		return true
-	case r == '_' || r == ' ':
-		return true
-	default:
-		return false
-	}
 }
