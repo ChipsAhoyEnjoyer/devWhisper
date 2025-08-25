@@ -8,8 +8,6 @@ import (
 )
 
 func (cfg Config) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
-	//  TODO: Validate incoming UUID
-	//  TODO: Authenticate user before allowing deletion
 	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
 	params := struct {
@@ -25,5 +23,5 @@ func (cfg Config) HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error deleting user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -73,6 +73,9 @@ func (cfg Config) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Add("Authorization", fmt.Sprintf("Bearer %s", jwtTk))
 	w.Header().Add("Refresh-Token", refreshToken)
-	msg := payload{Response: fmt.Sprintf("Logging in as %s", user.Username)}
+	msg := payload{
+		Response: fmt.Sprintf("Logging in as %s", user.Username),
+		Id:       user.ID,
+	}
 	RespondWithJSON(w, http.StatusOK, msg)
 }

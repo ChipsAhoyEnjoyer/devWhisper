@@ -17,11 +17,11 @@ func main() {
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", config.AuthMiddleware(http.HandlerFunc(server.HandleHomepage)))
-	mux.HandleFunc("/register", config.HandleRegister)
-	mux.HandleFunc("/deleteUser", config.HandleDeleteUser)
-	mux.HandleFunc("/connect", server.HandleConnect)
-	mux.HandleFunc("/login", config.HandleLogin)
+	mux.HandleFunc("/deleteUser", config.AuthMiddleware(http.HandlerFunc(config.HandleDeleteUser)))
+	mux.HandleFunc("/connect", config.AuthMiddleware(http.HandlerFunc(server.HandleConnect)))
 	mux.HandleFunc("/ping", server.HandlePing)
+	mux.HandleFunc("/register", config.HandleRegister)
+	mux.HandleFunc("/login", config.HandleLogin)
 	server := &http.Server{
 		Addr:    ":" + config.Port,
 		Handler: mux,
