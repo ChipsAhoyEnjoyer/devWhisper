@@ -8,7 +8,9 @@
 *.so
 *.dylib
 *.vim
+*.log
 devWhisper
+__pycache__
 
 # Test binary, built with `go test -c`
 *.test
