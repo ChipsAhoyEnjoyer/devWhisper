@@ -19,7 +19,7 @@ func main() {
 	mux.HandleFunc("/", config.AuthMiddleware(http.HandlerFunc(server.HandleHomepage)))
 	mux.HandleFunc("/deleteUser", config.AuthMiddleware(http.HandlerFunc(config.HandleDeleteUser)))
 	mux.HandleFunc("/connect", config.AuthMiddleware(http.HandlerFunc(server.HandleConnect)))
-	mux.HandleFunc("/pingRedis", server.HandlePingRedis)
+	mux.HandleFunc("/pingRedis", config.HandlePingRedis)
 	mux.HandleFunc("/register", config.HandleRegister)
 	mux.HandleFunc("/login", config.HandleLogin)
 	server := &http.Server{

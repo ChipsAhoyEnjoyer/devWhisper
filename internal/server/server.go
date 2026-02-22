@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/ChipsAhoyEnjoyer/devWhisper/internal/database"
-	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 
@@ -20,16 +19,6 @@ const (
 	envFile     = ".env"
 )
 
-type activeConnections map[string]*websocket.Conn
-
-type Config struct {
-	TokenSecret string
-	Port        string
-	Users       activeConnections
-	Rdb         *redis.Client
-	DB          *database.Queries
-}
-
 func NewServer() (*Config, error) {
 	godotenv.Load(envFile)
 
@@ -39,6 +28,7 @@ func NewServer() (*Config, error) {
 		tokenSecret = "secret"
 
 	}
+
 	environment := os.Getenv("ENVIRONMENT")
 	db_url := os.Getenv("GOOSE_DBSTRING")
 	if environment == "test" {
